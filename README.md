@@ -29,7 +29,9 @@ Debido a que en mi dataset y proyecto, las cosas a identificar esenciales son lo
 
 ### Fuentes
 [1] Li, Y., Sycara, K., & Iyer, R. (2018). Object-sensitive deep reinforcement learning. arXiv preprint arXiv:1809.06064. https://arxiv.org/pdf/1809.06064.pdf
+
 [2] B. van Oostendorp, “Object Detection for Reinforcement Learning Agents”, Syst. Theor. Control Comput. J., vol. 3, no. 2, pp. 9–14, Dec. 2023, doi: 10.52846/stccj.2023.3.2.51.
+
 [3] Jung M, Yang H, Min K. "Improving Deep Object Detection Algorithms for Game Scenes". Electronics. 2021; 10(20):2527. https://doi.org/10.3390/electronics10202527
 
 
