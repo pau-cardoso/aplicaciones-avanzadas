@@ -9,7 +9,6 @@ En el fólder `M2/ZeldaLevels` se estará realizando un algoritmo de ML que toma
 De no cumplirse alguno de estos puntos, el nivel sería clasificado como no jugable.
 
 Las imágenes que se estarán ocupando se encuentran ya divididas en fólders para entrenar y testear el algoritmo. Dentro de estos fólders, se vuelven a dividir en los niveles jugables y no jugables (playable y unplayable). Asimismo, ya en los fólders todo el dataset pasó por técnicas de escalamiento y preprocesado como lo fue:
-- Eliminacion de ruido
 - El redimensionar todas las imágenes para que estén con la misma dimensión ya que variaba en cada una.
 - Recortar las imagenes para que solo tome en cuenta la parte que nos interesa, remover el marco de la imagen que no afectaba a la decisión
 - Normalizar las imágenes
