@@ -1,6 +1,31 @@
 import cv2
 import os
 import numpy as np
+import tensorflow as tf
+
+def load_images(data_dir):
+    images = []
+    labels = []
+    categories =  ['playable', 'unplayable']
+
+    for category in categories:
+        print(data_dir, category)
+        category_dir = os.path.join(data_dir, category)
+        for image_file in os.listdir(category_dir):
+            if image_file.endswith(".jpg"):
+                image_path = os.path.join(category_dir, image_file)
+                image = tf.keras.preprocessing.image.load_img(image_path, target_size=(128, 88))
+                image = tf.keras.preprocessing.image.img_to_array(image)
+                images.append(image)
+
+                if category == 'playable':
+                    label = 1  # Etiqueta 1 para "playable"
+                else:
+                    label = 0  # Etiqueta 0 para "unplayable"
+
+                labels.append(label)
+
+    return images, labels
 
 
 def resize_images():
