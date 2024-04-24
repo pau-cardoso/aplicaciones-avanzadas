@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.models import Sequential
@@ -9,7 +10,6 @@ from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, BatchNor
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import os
-import cv2
 import numpy as np
 
 # Rutas a los directorios de entrenamiento y prueba
@@ -51,33 +51,27 @@ val_generator = val_datagen.flow_from_directory(
   class_mode='binary'
 )
 
-# Definir la arquitectura del modelo CNN
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(88, 128, 3)),
-    MaxPooling2D((2, 2)),
-    BatchNormalization(),
-    Dropout(0.25),
+    MaxPooling2D((2, 2), strides=(2, 2)),
 
     Conv2D(64, (3, 3), activation='relu', padding='same'),
-    MaxPooling2D((2, 2)),
-    BatchNormalization(),
-    Dropout(0.25),
+    MaxPooling2D((2, 2), strides=(2, 2)),
 
     Conv2D(128, (3, 3), activation='relu', padding='same'),
-    MaxPooling2D((2, 2)),
-    BatchNormalization(),
-    Dropout(0.25),
+    MaxPooling2D((2, 2), strides=(2, 2)),
 
     Conv2D(256, (3, 3), activation='relu', padding='same'),
-    MaxPooling2D((2, 2)),
-    BatchNormalization(),
-    Dropout(0.25),
+    MaxPooling2D((2, 2), strides=(2, 2)),
+
+    Conv2D(512, (3, 3), activation='relu', padding='same'),
+    MaxPooling2D((2, 2), strides=(2, 2)),
 
     Flatten(),
-    Dense(256, activation='relu'),
-    Dropout(0.5),
-    Dense(1, activation='sigmoid')
-])
+    Dense(512, activation='relu'),
+    Dropout(0.5),  # Adding dropout for regularization to prevent overfitting
+    Dense(1, activation='sigmoid')  # Using sigmoid activation for binary classification
+    ])
 
 # Compilar el modelo
 model.compile(optimizer= 'adam',loss= 'binary_crossentropy', metrics = ['accuracy'] )
@@ -85,7 +79,7 @@ model.compile(optimizer= 'adam',loss= 'binary_crossentropy', metrics = ['accurac
 # Entrenar el modelo
 history = model.fit(
     train_generator,
-    epochs=EPOCHS,
+    epochs=15,
     batch_size=10,
     validation_data=val_generator,
 )
@@ -127,7 +121,7 @@ def check_manually(directory):
       img_tensor = np.expand_dims(img_tensor, axis = 0)
       img_tensor /= 255.
       confidence = model.predict(img_tensor,  verbose = 0)
-      file_predictions.append((confidence > 0.5).astype("int32"))
+      file_predictions.append((confidence < 0.5).astype("int32"))
 
   return file_predictions
 
@@ -154,10 +148,9 @@ plt.xlabel('Image Index')
 plt.ylabel('Prediction / True Label')
 plt.legend()
 
-
+# playable = np.array(playable_predictions)
 total_playable = len(playable_predictions)
-playable = np.array(playable_predictions)
-positive_playable = np.sum(playable_predictions)
+positive_playable = np.sum(np.array(playable_predictions))
 negative_playable = total_playable - positive_playable
 
 total_unplayable = len(unplayable_predictions)
@@ -167,8 +160,8 @@ negative_unplayable = total_unplayable - positive_unplayable
 # Cálculo de métricas adicionales
 TP = positive_playable
 FP = negative_playable
-TN = positive_unplayable
-FN = negative_unplayable
+TN = negative_unplayable
+FN = positive_unplayable
 
 true_positive_rate = TP / (TP + FN)
 false_positive_rate = FP / (FP + TN)
