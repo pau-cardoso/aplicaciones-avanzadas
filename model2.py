@@ -2,95 +2,100 @@
 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras import optimizers
-from tensorflow.keras import models
-from tensorflow.keras import layers
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, BatchNormalization
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import os
-from helper import load_images
-import random
 import cv2
-
-def shuffle_together(arr1, arr2):
-    combined = list(zip(arr1, arr2))
-    random.shuffle(combined)
-    arr1[:], arr2[:] = zip(*combined)
-    return arr1, arr2
-
-def load_images(data_dir):
-    images = []
-    labels = []
-    categories =  ['playable', 'unplayable']
-
-    for category in categories:
-        category_dir = os.path.join(data_dir, category)
-        for image_file in os.listdir(category_dir):
-            if image_file.endswith(".jpg"):
-                image_path = os.path.join(category_dir, image_file)
-                image = cv2.imread(image_path)
-                image = tf.keras.preprocessing.image.load_img(image_path, target_size=(128, 88))
-                images.append(image)
-
-                if category == 'playable':
-                    label = 1  # Etiqueta 1 para "playable"
-                else:
-                    label = 0  # Etiqueta 0 para "unplayable"
-
-                labels.append(label)
-
-    images, labels = shuffle_together(images, labels)
-    images = tf.convert_to_tensor(np.array(images))
-    labels = tf.convert_to_tensor(np.array(labels))
-    return images, labels
-
+import numpy as np
 
 # Rutas a los directorios de entrenamiento y prueba
 train_dir = 'dataset/train'
 test_dir = 'dataset/test'
 val_dir = 'dataset/val'
 
-# Cargar las imágenes de entrenamiento y prueba
-train_images, train_labels = load_images(train_dir)
-test_images, test_labels = load_images(test_dir)
-val_images, val_labels = load_images(val_dir)
+# Crear generadores de imágenes para entrenamiento y validación
+train_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
+val_datagen = ImageDataGenerator(rescale=1./255)
 
 BATCH_SIZE = 32
-TARGET_SIZE = (128, 88)
-EPOCHS = 30
+TARGET_SIZE = (88, 128)
+EPOCHS = 10
+
+# Cargar las imágenes de entrenamiento y prueba
+train_generator = train_datagen.flow_from_directory(
+  directory=train_dir,
+  target_size=TARGET_SIZE,
+  batch_size=BATCH_SIZE,
+  class_mode='binary'
+)
+
+plt.imshow(train_generator[0][0][0])
+
+
+test_generator = test_datagen.flow_from_directory(
+  directory=test_dir,
+  target_size=TARGET_SIZE,
+  batch_size=BATCH_SIZE,
+  class_mode='binary'
+)
+
+val_generator = val_datagen.flow_from_directory(
+  directory=val_dir,
+  target_size=TARGET_SIZE,
+  batch_size=BATCH_SIZE,
+  class_mode='binary'
+)
 
 # Definir la arquitectura del modelo CNN
 model = Sequential([
-    Conv2D(128, (3, 3), activation='relu'),
+    Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(88, 128, 3)),
     MaxPooling2D((2, 2)),
-    Conv2D(64, (3, 3), activation='relu'),
+    BatchNormalization(),
+    Dropout(0.25),
+
+    Conv2D(64, (3, 3), activation='relu', padding='same'),
     MaxPooling2D((2, 2)),
-    Conv2D(32, (3, 3), activation='relu'),
+    BatchNormalization(),
+    Dropout(0.25),
+
+    Conv2D(128, (3, 3), activation='relu', padding='same'),
     MaxPooling2D((2, 2)),
+    BatchNormalization(),
+    Dropout(0.25),
+
+    Conv2D(256, (3, 3), activation='relu', padding='same'),
+    MaxPooling2D((2, 2)),
+    BatchNormalization(),
+    Dropout(0.25),
+
     Flatten(),
-    Dense(64, activation='relu'),
+    Dense(256, activation='relu'),
+    Dropout(0.5),
     Dense(1, activation='sigmoid')
 ])
-
-model.summary()
 
 # Compilar el modelo
 model.compile(optimizer= 'adam',loss= 'binary_crossentropy', metrics = ['accuracy'] )
 
 # Entrenar el modelo
-
 history = model.fit(
-    train_images,
-    train_labels,
-    batch_size=BATCH_SIZE,
+    train_generator,
     epochs=EPOCHS,
-    validation_data=(val_images, val_labels),
+    batch_size=10,
+    validation_data=val_generator,
 )
+
+model.summary()
+
+# Evaluar el modelo en el conjunto de prueba
+test_loss, test_acc = model.evaluate(test_generator)
+print('Precisión en el conjunto de prueba:', test_acc)
+
 
 acc = history.history['accuracy']
 loss = history.history['loss']
@@ -109,34 +114,61 @@ plt.legend()
 
 plt.show()
 
+model.save("pau.keras")
 
-# Evaluar el modelo en el conjunto de prueba
-test_loss, test_acc = model.evaluate(test_images, test_labels)
+def check_manually(directory):
+  file_predictions = []
 
-print('Accuracy en el conjunto de prueba:', test_acc)
+  for filename in os.listdir(directory):
+    if filename.endswith(".jpg"):
+      img_path = os.path.join(directory, filename)
+      img = tf.keras.preprocessing.image.load_img(img_path, target_size=TARGET_SIZE)
+      img_tensor = tf.keras.preprocessing.image.img_to_array(img)
+      img_tensor = np.expand_dims(img_tensor, axis = 0)
+      img_tensor /= 255.
+      confidence = model.predict(img_tensor,  verbose = 0)
+      file_predictions.append((confidence > 0.5).astype("int32"))
+
+  return file_predictions
 
 # Get the predictions for the test set
-predictions = model.predict(test_images)
-# Get the predicted classes for each image
-predicted_classes = np.argmax(predictions, axis=1)
+playable_predictions = check_manually(test_dir + '/playable')
+unplayable_predictions = check_manually(test_dir + '/unplayable')
 
-# Compute confusion matrix
-conf_matrix = confusion_matrix(test_labels, predicted_classes)
+true_labels = np.array([1.0] * len(playable_predictions) + [0.0] * len(unplayable_predictions), dtype=np.float32)
+predictions = np.concatenate([playable_predictions, unplayable_predictions]).flatten().astype(np.float32)
+accuracy = np.mean(predictions == true_labels)
+loss = tf.keras.losses.binary_crossentropy(true_labels, predictions).numpy().mean()
+print("Accuracy:", accuracy)
+print("Loss:", loss)
 
-# Plot confusion matrix
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", cbar=False)
-plt.xlabel('Predicted Label')
-plt.ylabel('True Label')
-plt.title('Confusion Matrix')
-plt.show()
+# Create a plot
+plt.figure(figsize=(10, 5))
 
+# Plot accuracy
+plt.subplot(1, 2, 1)
+plt.plot(range(len(true_labels)), predictions, label='Predictions', color='blue')
+plt.plot(range(len(true_labels)), true_labels, label='True Labels', color='red')
+plt.title('Predictions vs True Labels')
+plt.xlabel('Image Index')
+plt.ylabel('Prediction / True Label')
+plt.legend()
+
+
+total_playable = len(playable_predictions)
+playable = np.array(playable_predictions)
+positive_playable = np.sum(playable_predictions)
+negative_playable = total_playable - positive_playable
+
+total_unplayable = len(unplayable_predictions)
+positive_unplayable = np.sum(np.array(unplayable_predictions))
+negative_unplayable = total_unplayable - positive_unplayable
 
 # Cálculo de métricas adicionales
-TP = conf_matrix[0, 0]
-FP = conf_matrix[0, 1]
-TN = conf_matrix[1, 1]
-FN = conf_matrix[1, 0]
+TP = positive_playable
+FP = negative_playable
+TN = positive_unplayable
+FN = negative_unplayable
 
 true_positive_rate = TP / (TP + FN)
 false_positive_rate = FP / (FP + TN)
@@ -149,3 +181,12 @@ print('False positive rate:', false_positive_rate)
 print('Precisión:', precision)
 print('Sensibilidad (Recall):', recall)
 print('Puntuación F1:', f1_score)
+
+# Plot confusion matrix
+conf_matrix = [[TP, FP], [FN, TN]]
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", cbar=False)
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix')
+plt.show()
