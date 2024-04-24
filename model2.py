@@ -24,7 +24,7 @@ val_datagen = ImageDataGenerator(rescale=1./255)
 
 BATCH_SIZE = 32
 TARGET_SIZE = (88, 128)
-EPOCHS = 10
+EPOCHS = 25
 
 # Cargar las imágenes de entrenamiento y prueba
 train_generator = train_datagen.flow_from_directory(
@@ -71,7 +71,7 @@ model = Sequential([
     Dense(512, activation='relu'),
     Dropout(0.5),  # Adding dropout for regularization to prevent overfitting
     Dense(1, activation='sigmoid')  # Using sigmoid activation for binary classification
-    ])
+])
 
 # Compilar el modelo
 model.compile(optimizer= 'adam',loss= 'binary_crossentropy', metrics = ['accuracy'] )
@@ -79,7 +79,7 @@ model.compile(optimizer= 'adam',loss= 'binary_crossentropy', metrics = ['accurac
 # Entrenar el modelo
 history = model.fit(
     train_generator,
-    epochs=15,
+    epochs=EPOCHS,
     batch_size=10,
     validation_data=val_generator,
 )
