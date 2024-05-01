@@ -35,6 +35,7 @@ train_generator = train_datagen.flow_from_directory(
 )
 
 plt.imshow(train_generator[0][0][0])
+plt.show()
 
 
 test_generator = test_datagen.flow_from_directory(
