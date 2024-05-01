@@ -2,15 +2,15 @@
 
 ## Resumen
 
-Se estará realizando un algoritmo de redes neuronales que tomará un dataset con diferentes imágenes de diferentes niveles del videojuego Zelda. La máquina deberá aprender a reconocer si el nivel de la imagen es jugable o no jugable. La manera de reconocer si un nivel es jugable es con base a los siguientes criterios:
+Se desarrolló un algoritmo de redes neuronales que utiliza un conjunto de datos con diferentes imágenes de distintos niveles del videojuego Zelda. La máquina debe aprender a reconocer si el nivel de la imagen es jugable o no jugable. La forma de reconocer si un nivel es jugable se basa en los siguientes criterios:
 
-1. El personaje de Link se encuentre en el nivel
-2. Haya al menos una llave para que Link pueda acceder a la puerta
-3. Haya al menos una puerta a la que Link pueda avanzar
+1. El personaje de Link se encuentra en el nivel
+2. Hay al menos una llave para que Link pueda acceder a la puerta
+3. Hay al menos una puerta a la que Link pueda avanzar
 
-De no cumplirse alguno de estos puntos, el nivel sería clasificado como no jugable.
+Si no se cumple alguno de estos puntos, el nivel se clasificaría como no jugable.
 
-Cabe mencionar que en las imágenes de los niveles además de los objetos como Link, las llaves y puertas, también se encuentran enemigos. Hay diferentes enemigos del juego con diferentes formas y colores. Si bien estos personajes no afectaran en la decisión de si un nivel es jugable o no, es importante que el modelo reconozca solo aquellas características que si importan. Estos enemigos podrían ser un estorbo visual para el aprendizaje del modelo y es algo a considerar en el desarrollo.
+Cabe mencionar que en las imágenes de los niveles, además de los objetos como Link, las llaves y las puertas, también se encuentran enemigos. Hay diferentes enemigos del juego con diferentes formas y colores. Si bien estos personajes no afectan en la decisión de si un nivel es jugable o no, es importante que el modelo reconozca solo aquellas características que sí importan. Estos enemigos podrían ser un estorbo visual para el aprendizaje del modelo y es algo a considerar en el desarrollo.
 
 ## Dataset
 
@@ -19,24 +19,24 @@ El dataset original fue recuperado de Kaggle con el título de **Zelda Game Leve
 - 1024 con imágenes de niveles jugables (playable)
 - 1024 con imágenes de niveles no jugables (unplayable)
 
-Al recuperar el dataset únicamente se encontraba dividido en 2 fólders: playable y unplayable, representando las 2 clasificaciones a determinar.
+Al recuperar el conjunto de datos, solo se encontraba dividido en 2 carpetas: playable y unplayable, representando las 2 clasificaciones a determinar.
 
 Dataset: https://www.kaggle.com/datasets/adizafar/zelda-game-levels/data
 
 ## Preprocesamiento
 
-Debido a que el dataset no se encontraba dividido en los fólder para entrenar, validar y testear, dividí las imágenes en estas 3 categorías para que mi modelo pueda utilizar posteriormente. Esta división se hizo de la siguiente manera:
+Debido a que el conjunto de datos no se encontraba dividido en carpetas para entrenar, validar y probar, dividí las imágenes en estas 3 categorías para que mi modelo pueda utilizarlas después. Esta división se hizo de la siguiente manera:
 
 - 70% para entrenamiento (1434 imágenes en total: 717 playable, 717 unplayable)
 - 20% para test (408 imágenes en total: 204 playable, 204 unplayable)
 - 10% para validación (206 imágenes en total: 103 playable, 103 unplayable)
 
-Las imágenes que se estarán ocupando se encuentran en el fólder nombrado `dataset`. En este mismo se encuentran las imágenes divididas en subcarpetas tituladas `train`, `test` y `val` para entrenar, testear y validar el modelo. Dentro de cada uno de estos fólders, se vuelven a dividir en los niveles jugables y no jugables (carpetas `playable` y `unplayable`).
+Las imágenes que se usarán se encuentran en la carpeta llamada `dataset`. En este mismo se encuentran las imágenes divididas en subcarpetas tituladas `train`, `test` y `val` para entrenar, probar y validar el modelo. Dentro de cada uno de estos fólders, se vuelven a dividir en los niveles jugables y no jugables (carpetas `playable` y `unplayable`).
 
-Asimismo, ya dentro de cada carpeta, todo el dataset pasó por técnicas de escalamiento y preprocesado como lo fue:
+Asimismo, ya dentro de cada carpeta, todo el dataset pasó por técnicas de escalamiento y preprocesamiento como lo fue:
 
-- El redimensionar todas las imágenes para que estén con la misma dimensión ya que variaba en cada una.
-- Recortar las imagenes para que solo tome en cuenta la parte que nos interesa, remover el marco de la imagen que no afecta a la decisión
+- Redimensionar todas las imágenes para que tengan la misma dimensión, ya que variaba en cada una.
+- Recortar las imágenes para que solo tome en cuenta la parte que nos interesa, remover el marco de la imagen que no afecta a la decisión
 - Normalizar las imágenes
 
 Todo esto se realizó con la ayuda de unos scripts que se encuentran en el archivo `helper.py`, mismo que se puede volver a ocupar en caso de requerirlo en el algoritmo.
@@ -100,7 +100,7 @@ En general esta arquitectura no fue un buen modelo para el problema a resolver. 
 ![alt text](/images/loss_accuracy.png)
 ![alt text](/images/test_confusion_matrix.png)
 
-Otro comentario sobre esta primera versión fue que, al momento de correrlo la primera vez, no se tenían las gráficas como en la segunda versión, por lo que decidí correrlo una vez más y debido a correcciones al realizar las pruebas con el modelo ya entrenado, sin utilizar un generador de dataset para el fólder de train, el resultado fue el siguiente:
+Al momento de correrlo la primera vez, no se tenían las gráficas que ahora se tienen para la segunda versión, por lo que decidí correrlo una vez más con las nuevas gráficas. Al realizarlo con el nuevo código donde ya no se utiliza el generador de dataset, pude darme cuenta que los resultados fueron peor que antes y no eran correctos. A continuación los resultados de esta primera versión con la adición de las gráficas y correcciones en la generación de los valores finales.
 
 #### Accuracy and Loss
 | Accuracy | Loss |
@@ -120,7 +120,7 @@ Fue entonces donde noté que mi modelo estaba realizando mucho underfitting y lo
 
 ### Algoritmo
 
-En la segunda versión hubo más cambios por el underfitting que tuvo previamente y la manera en la que se comportaba todo el modelo. Las capas utilizadas son las mismas en su mayoría pero con diferentes hiperparámetros, más repeticiones de capas y diferente orden. En este segundo modelo se utiliza Dropout para controlar el overfitting del modelo debido a las mejoras hechas.
+En la segunda versión hubo más cambios debido a que era necesario por el underfitting que tuvo previamente y la manera en la que se comportaba todo el modelo. Las capas utilizadas son las mismas en su mayoría pero con diferentes hiperparámetros, más repeticiones de capas y diferente orden. En este segundo modelo se utiliza Dropout para controlar el overfitting del modelo debido a las mejoras hechas.
 
 #### Cambios
 
@@ -129,7 +129,7 @@ Los cambios hechos en esta segunda versión fueron los siguientes:
 - Cambio en la arquitectura basado en el paper [1]
   - Arquitectura más profunda: Se añadieron más capas convolucionales que permiten a la red aprender caracteristicas más complejas y abstractas de las imágenes. Debido a que las imágenes contienen mucho detalle de todos los objetos y personajes presentes en ella, se añadieron más capas.
   - Más filtros: Se pusieron más filtros dentro de las capas que ayudan a captar más variedad de características.
-  - Dropout: Se añade una capa de Dropiut que ayuda a regular la red para que no haga overfitting con esta arquitectura más compleja.
+  - Dropout: Se añade una capa de Dropout que ayuda a regular la red para que no haga overfitting con esta arquitectura más compleja.
 - No se utiliza test datagen para el cálculo de la matriz de confusión, ahora se realiza manualmente importando el modelo y prediciendo cada imagen en el dataset
 - Se añadieron más gráficas para su análisis
 
@@ -161,7 +161,7 @@ Este nuevo modelo se encuentra terminado en el archivo `model2.py`. Asimismo, se
 
 Si se desea correr algunas queries específicas para poner a prueba este modelo refinado se puede ejecutar el archivo `loadModel.py`. Este mismo archivo importa imágenes que no se encontraban en el dataset de la carpeta `/queries`. En el caso de querer introducir una nueva imagen se puede agregar en esta carpeta y modificar el código dentro de `loadModel.py` que importa el archivo deseado para realizar la predicción una vez que se ejecuta el código.
 
-Por otro lado, en caso de querer probar un modelo para la generación de las matrices de confusión de train, test y validation y los valores importantes de ello, se puede ejecutar el código `plots.py`. Este archivo realiza las matrices de confusión e imprime los valores de cada categoría dentro de la terminal. Para correrlo es necesario tener un archivo .keras del modelo a probar. Se puede utilizar el archivo `pau.keras` para probar la versión más reciente del modelo. 
+Por otro lado, en caso de querer probar un modelo para la generación de las matrices de confusión de train, test y validation y los valores importantes de ello, se puede ejecutar el código `plots.py`. Este archivo realiza las matrices de confusión e imprime los valores de cada categoría dentro de la terminal. Para correrlo es necesario tener un archivo .keras del modelo a probar. Se puede utilizar el archivo `pau.keras` para probar la versión más reciente del modelo.
 
 
 ## Conclusión

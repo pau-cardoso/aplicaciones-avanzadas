@@ -90,25 +90,37 @@ model.summary()
 test_loss, test_acc = model.evaluate(test_generator)
 print('Precisión en el conjunto de prueba:', test_acc)
 
+model.save("pau2.keras")
 
+
+# Obtener accuracy y loss de entrenamiento y validación
 acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
+val_loss = history.history['val_loss']
 
 epochs = range(1, len(acc)+1)
 
-plt.plot(epochs,acc,'bo',label='train accuracy')
-plt.title('train acc')
+# Graficar accuracy
+plt.plot(epochs, acc, 'b', label='Training accuracy')
+plt.plot(epochs, val_acc, 'g', label='Validation accuracy')
+plt.title('Training and validation accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
 plt.legend()
+plt.show()
 
+# Graficar loss
 plt.figure()
-
-plt.plot(epochs,loss, 'bo', label ='training loss')
-plt.title('train loss')
+plt.plot(epochs, loss, 'b', label='Training loss')
+plt.plot(epochs, val_loss, 'g', label='Validation loss')
+plt.title('Training and validation loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
 plt.legend()
 
 plt.show()
 
-model.save("pau.keras")
 
 def check_manually(directory):
   file_predictions = []
@@ -147,6 +159,7 @@ plt.title('Predictions vs True Labels')
 plt.xlabel('Image Index')
 plt.ylabel('Prediction / True Label')
 plt.legend()
+plt.show()
 
 # playable = np.array(playable_predictions)
 total_playable = len(playable_predictions)
