@@ -1,4 +1,4 @@
-# Detectando Niveles Jugables en Zelda
+# Detección de Niveles Jugables con CNNs
 
 ## Resumen
 
@@ -100,42 +100,82 @@ En general esta arquitectura no fue un buen modelo para el problema a resolver. 
 ![alt text](/images/loss_accuracy.png)
 ![alt text](/images/test_confusion_matrix.png)
 
-Otro comentario sobre esta primera versión fue que, al momento de correrlo la primera vez, no se tuvieron las gráficas como en la segunda versión. 
+Otro comentario sobre esta primera versión fue que, al momento de correrlo la primera vez, no se tenían las gráficas como en la segunda versión, por lo que decidí correrlo una vez más y debido a correcciones al realizar las pruebas con el modelo ya entrenado, sin utilizar un generador de dataset para el fólder de train, el resultado fue el siguiente:
+
+#### Accuracy and Loss
+| Accuracy | Loss |
+|--- | --- |
+|![alt text](/images/1_AccuracyTrain.png) | ![alt text](/images/1_LossTrain.png) |
+
+#### Confusion Matrix
+| Train | Test | Validation |
+|--- | --- | --- |
+|![alt text](/images/1_TrainConfusionMatrix.png) | ![alt text](/images/1_TestConfusionMatrix.png) | ![alt text](/images/1_ValidationConfusionMatrix.png) |
+
+
+Fue entonces donde noté que mi modelo estaba realizando mucho underfitting y los resultados, como comentado antes, no eran para nada los esperados y la arquitectura no concordaba con lo que necesitaba mi modelo.
 
 
 ## Segunda versión
 
 ### Algoritmo
 
-En la segunda versión el modelo utiliza las mismas capas de la primera versión pero de forma inversa y con más repeticiones. Asimismo utiliza funciones Dropout para controlar el overfitting del modelo. Cabe mencionar que las convoluciones se realizan con activación de ReLU, esto porque en el paper mencionado es el que utilizan debido a que en estudios previos se dieron cuenta que ReLU es más rápido que tanh en el entrenamiento y era una mejor opción para este tipo de problema.
+En la segunda versión hubo más cambios por el underfitting que tuvo previamente y la manera en la que se comportaba todo el modelo. Las capas utilizadas son las mismas en su mayoría pero con diferentes hiperparámetros, más repeticiones de capas y diferente orden. En este segundo modelo se utiliza Dropout para controlar el overfitting del modelo debido a las mejoras hechas.
 
-### Cambios
+#### Cambios
 
-En la segunda versión se realizaron varios cambios entre ellos:
+Los cambios hechos en esta segunda versión fueron los siguientes:
 
-- Cambio en la arquitectura
-- Se añaden más repeticiones en las capas para incrementar la detección de las características
-- No se utiliza test datagen para el cálculo de la matriz de confusión, ahora se realiza manualmente
+- Cambio en la arquitectura basado en el paper [1]
+  - Arquitectura más profunda: Se añadieron más capas convolucionales que permiten a la red aprender caracteristicas más complejas y abstractas de las imágenes. Debido a que las imágenes contienen mucho detalle de todos los objetos y personajes presentes en ella, se añadieron más capas.
+  - Más filtros: Se pusieron más filtros dentro de las capas que ayudan a captar más variedad de características.
+  - Dropout: Se añade una capa de Dropiut que ayuda a regular la red para que no haga overfitting con esta arquitectura más compleja.
+- No se utiliza test datagen para el cálculo de la matriz de confusión, ahora se realiza manualmente importando el modelo y prediciendo cada imagen en el dataset
+- Se añadieron más gráficas para su análisis
 
+#### Arquitectura final
 ![alt text](/images/2_arquitectura.png)
 
 ### Resultados
 
-Los resultados en la versión 2 fueron mejores que en la primera versión. El accuracy en train y test incrementó un poco, pero la matriz de confusión ahora se mantiene siempre igual y en ella se puede notar que las predicciones realizadas son más atinadas a las verdaderas. Sigue teniendo un poco de problema en identificar los niveles jugables como tal, pues en esa parte es donde se equivoca bastante. Sin embargo las equivocaciones al intentar predecir que un nivel es no jugable son mínimas y lo hace muy bien.
+Los resultados en la versión 2 fueron mejores que en la primera versión. Los valores en train y test incrementaron más, pero lo más destacable fue que la matriz de confusión ahora se mantiene siempre igual y en ella se puede notar que las predicciones realizadas son más atinadas a las verdaderas. Si bien el modelo sigue teniendo un poco de problema en identificar los niveles jugables como tal, en la gran mayoría de imágenes logra una clasificación como se debe. A continuación están las gráficas de este modelo:
 
-**train accuracy:** 0.8635
+**Puntuación F1 de train:** 0.9623
 
-**test accuracy:** 0.8333
+**Puntuación F1 de test:** 0.9382
 
-#### Matriz de confusión
 
-![alt text](/images/2_conf_matrix.png)
+#### Accuracy and Loss
+| Accuracy | Loss |
+|--- | --- |
+|![alt text](/images/2_AccuracyTrain.png) | ![alt text](/images/2_LossTrain.png) |
+
+#### Confusion Matrix and Values
+| Train | Test | Validation |
+|--- | --- | --- |
+|![alt text](/images/2_TrainConfusionMatrix.png) | ![alt text](/images/2_TestConfusionMatrix.png) | ![alt text](/images/2_ValidationConfusionMatrix.png) |
+|![alt text](/images/2_TrainValues.png) | ![alt text](/images/2_TestValues.png) | ![alt text](/images/2_ValidationValues.png) |
+
+## Ejecución
+Este nuevo modelo se encuentra terminado en el archivo `model2.py`. Asimismo, se puede ver el resultado dado en el archivo `model.ipynb`.
+
+Si se desea correr algunas queries específicas para poner a prueba este modelo refinado se puede ejecutar el archivo `loadModel.py`. Este mismo archivo importa imágenes que no se encontraban en el dataset de la carpeta `/queries`. En el caso de querer introducir una nueva imagen se puede agregar en esta carpeta y modificar el código dentro de `loadModel.py` que importa el archivo deseado para realizar la predicción una vez que se ejecuta el código.
+
+Por otro lado, en caso de querer probar un modelo para la generación de las matrices de confusión de train, test y validation y los valores importantes de ello, se puede ejecutar el código `plots.py`. Este archivo realiza las matrices de confusión e imprime los valores de cada categoría dentro de la terminal. Para correrlo es necesario tener un archivo .keras del modelo a probar. Se puede utilizar el archivo `pau.keras` para probar la versión más reciente del modelo. 
+
+
+## Conclusión
+Después del análisis realizado de la primera versión y haciendo la investigación y ajustes necesarios para la segunda versión, se pudo ver un incremento en la precisión del modelo que satisface la predicción de las imágenes de diferentes niveles de Zelda en su gran mayoría. Si bien el modelo aún podría mejorar y puede ser refinado, cumple su propósito y se realizó una gran mejora en comparación a la primera versión. La segunda arquitectura es más compleja y poderosa que la primera y fue por ello que el aprendizaje fue más preciso y logró mejor precisión en la tarea de clasificación al terminar.
+
 
 ## Fuentes
 
-[1] Kunakornvong, P., & Asriny, D. M. (2019, June). Apple image classification using convolutional neural network. In 34th International Technology Conference Circuits/Systems, Computing Communication. https://www.researchgate.net/profile/Pichate-Kunakornvong/publication/339683856_Apple_image_classification_using_Convolutional_Neural_Network/links/5e5fa1d1a6fdccbeba19e6f3/Apple-image-classification-using-Convolutional-Neural-Network.pdf
-[2] Li, Y., Sycara, K., & Iyer, R. (2018). Object-sensitive deep reinforcement learning. arXiv preprint arXiv:1809.06064. https://arxiv.org/pdf/1809.06064.pdf
+- [1] Kunakornvong, P., & Asriny, D. M. (2019, June). Apple image classification using convolutional neural network. In 34th International Technology Conference Circuits/Systems, Computing Communication. https://www.researchgate.net/profile/Pichate-Kunakornvong/publication/339683856_Apple_image_classification_using_Convolutional_Neural_Network/links/5e5fa1d1a6fdccbeba19e6f3/Apple-image-classification-using-Convolutional-Neural-Network.pdf
 
-[3] B. van Oostendorp, “Object Detection for Reinforcement Learning Agents”, Syst. Theor. Control Comput. J., vol. 3, no. 2, pp. 9–14, Dec. 2023, doi: 10.52846/stccj.2023.3.2.51.
+- [2] Khor, W., Chen, Y.K., Roberts, M. et al. Automated detection and classification of concealed objects using infrared thermography and convolutional neural networks. Sci Rep 14, 8353 (2024). https://doi.org/10.1038/s41598-024-56636-8
 
-[4] Jung M, Yang H, Min K. "Improving Deep Object Detection Algorithms for Game Scenes". Electronics. 2021; 10(20):2527. https://doi.org/10.3390/electronics10202527
+- [3] Li, Y., Sycara, K., & Iyer, R. (2018). Object-sensitive deep reinforcement learning. arXiv preprint arXiv:1809.06064. https://arxiv.org/pdf/1809.06064.pdf
+
+- [4] B. van Oostendorp, “Object Detection for Reinforcement Learning Agents”, Syst. Theor. Control Comput. J., vol. 3, no. 2, pp. 9–14, Dec. 2023, doi: 10.52846/stccj.2023.3.2.51.
+
+- [5] Jung M, Yang H, Min K. "Improving Deep Object Detection Algorithms for Game Scenes". Electronics. 2021; 10(20):2527. https://doi.org/10.3390/electronics10202527
