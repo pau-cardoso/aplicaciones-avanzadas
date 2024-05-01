@@ -7,7 +7,7 @@ TARGET_SIZE = (88, 128)
 
 model = models.load_model("pau.keras")
 
-img_path = 'queries/test4.png'
+img_path = 'queries/test9.png'
 labels = ["unplayable", "playable"]
 
 plt.figure()
