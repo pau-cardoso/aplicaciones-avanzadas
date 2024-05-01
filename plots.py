@@ -74,7 +74,9 @@ def plot_confusion_matrix(directory, title):
   plt.title(title)
   plt.show()
 
-
+print("\n------ Train ------")
 plot_confusion_matrix(TRAIN_DIR, 'Train Confusion Matrix')
+print("\n\n------ Test ------")
 plot_confusion_matrix(TEST_DIR, 'Test Confusion Matrix')
+print("\n\n------ Validation ------")
 plot_confusion_matrix(VAL_DIR, 'Validation Confusion Matrix')
