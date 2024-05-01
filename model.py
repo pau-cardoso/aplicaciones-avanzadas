@@ -12,7 +12,6 @@ from keras.models import Sequential
 from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
-# from os import walk
 import os
 
 BATCH_SIZE = 32
